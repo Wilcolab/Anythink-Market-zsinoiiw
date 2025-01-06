@@ -9,6 +9,9 @@ This workshop is designed to help you get started with vector search using Couch
 
 The entire workshop will be run from inside a GitHub Codespace, which is a cloud-based development environment that is pre-configured with all the necessary tools and services. You don't need to install anything on your local machine.
 
+> [!IMPORTANT]
+> Key information needed for running this workshop in GitHub Codespaces can be found [here](#running-in-github-codespaces).
+
 ## Prerequisites
 
 - A GitHub account
@@ -22,6 +25,7 @@ The entire workshop will be run from inside a GitHub Codespace, which is a cloud
 4. [Transform Data](#transform-data)
 5. [Index Data](#index-data)
 6. [Search Data](#search-data)
+7. [Running in GitHub Codespaces](#running-in-github-codespaces)
 
 ## Video Walkthrough
 
@@ -128,6 +132,14 @@ Once you click on the "Connect" tab, you will see a section called "Couchbase Sh
 
 <img src="workshop_images/get_cbshell_config.png" alt="Get Couchbase Shell config file data" width="50%">
 
+Make sure to add the `default-bucket` field to the config file with the name of the bucket you created earlier.
+
+```bash
+default-bucket = "your-bucket-name" 
+```
+
+You can find an example config file in the `./config_file` directory for reference.
+
 #### Import Data with Couchbase Shell
 
 Change into the directory where the data files with embeddings are:
@@ -139,7 +151,7 @@ cd data/individual_items_with_embedding
 Open up Couchbase shell passing in an argument with the location of the config file defining your Couchbase information:
 
 ```bash
-cbsh --config-dir ../config-file
+cbsh --config-dir ../../config-file
 ```
 
 Once in the shell, run the `nodes` command to just perform a sanity check that you are connected to the correct cluster.
@@ -163,6 +175,14 @@ Now, import the data into the bucket you created earlier:
 ```bash
 ls *_with_embedding.json | each { |it| open $it.name | wrap content | insert id $in.content._default.name } | doc upsert
 ```
+
+While, in this workshop we are focused on creating a *vector search index*, you can also create a primary search index to enable full-text search on the data:
+
+```bash
+query "create primary index on name_of_your_bucket._default._default"
+```
+
+Make sure to replace the `name_of_your_bucket` with the name of your bucket you created.
 
 Once this is done, you can perform a sanity check to ensure the documents were inserted by running a query to select just one:
 
@@ -234,3 +254,28 @@ curl -X POST http://localhost:3000/search \
   -d '{"q": "your_query_item"}'
 ```
 
+## Running in GitHub Codespaces
+
+When working in a GitHub Codespaces environment, there are some differences to be aware of, especially for the Couchbase Shell commands.
+
+* The `cbsh` binary is not available in your `PATH` by default in Codespaces. Instead, you can find it in the following directory within your workspace:
+
+```bash
+couchbase-shell/target/debug/cbsh
+```
+
+To use `cbsh` in your Codespace, provide the full path wwhen running commands. For example:
+
+```bash
+./couchbase-shell/target/debug/cbsh --config-dir /path/to/config-file
+```
+
+You can also create an alias for the `cbsh` binary to make it easier to use:
+
+```bash
+alias cbsh="./couchbase-shell/target/debug/cbsh"
+```
+
+This allows you to run `cbsh` commands without specifying the full path.
+
+Other than that, Codespaces comes pre-configured with all the dependencies necessary to run this workshop.
